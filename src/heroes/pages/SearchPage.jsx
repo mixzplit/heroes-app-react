@@ -3,6 +3,8 @@ import queryString from 'query-string';
 
 import { useForm } from "../../hooks";
 import { HeroCard  } from "../components";
+import { getHeroesByName } from "../helpers";
+import { Alert } from "../../ui/components";
 
 export const SearchPage = () => {
 
@@ -10,16 +12,23 @@ export const SearchPage = () => {
   const location = useLocation();
   console.log({location});
 
-  const { q = '' } = queryString.parse(location.search)
+  const { q = '' } = queryString.parse(location.search);
+  const heroes = getHeroesByName(q);
+
+  const showSearch = (q.length === 0) ;
+  const showError = (q.length > 0) && heroes.length === 0;
+
+  const typeAlert = (q.length === 0) ? 'alert-primary' : (q.length > 0) && heroes.length === 0 ? 'alert-danger' : '';
+
 
   const { searchText, onInputChange } = useForm({
-    searchText: ''
+    searchText: q
   });
 
   const onSubmitSearch = (event) => {
     event.preventDefault()
 
-    if(searchText.trim().length <= 1) return;
+    //if(searchText.trim().length <= 1) return;
 
     navigate(`?q=${searchText.toLowerCase()}`)
 
@@ -51,14 +60,14 @@ export const SearchPage = () => {
           <h4>Results</h4>
           <hr />
 
-          <div className="alert alert-primary">
-            Search a hero
-          </div>
-          <div className="alert alert-danger">
-            No hero with <b>{ q }</b>
-          </div>
+          <Alert message="Search a hero" type={typeAlert} style={{ display: showSearch ? '' : 'none' }}  />
+          <Alert message={`No hero with ${q}`} type={typeAlert} style={{ display: showError ? '' : 'none' }}  />
 
-          {/* <HeroCard /> */}
+          {
+            heroes.map( hero => {
+              return <HeroCard key={hero.id} {...hero} />
+            })
+          }
 
         </div>
 
